@@ -7,7 +7,7 @@ import mime from 'mime-types';
 import normalizeFallback from './utils/normalizeFallback';
 import schema from './options.json';
 
-function shouldTransform(limit, size) {
+function shouldTransform(limit, size, resourcePath) {
   if (typeof limit === 'boolean') {
     return limit;
   }
@@ -18,6 +18,10 @@ function shouldTransform(limit, size) {
 
   if (typeof limit === 'number') {
     return size <= limit;
+  }
+
+  if (typeof limit === 'function') {
+    return limit(resourcePath);
   }
 
   return true;
@@ -77,15 +81,15 @@ function getEncodedData(generator, mimetype, encoding, content, resourcePath) {
 export default function loader(content) {
   // Loader Options
   const options = getOptions(this) || {};
+  const { resourcePath } = this;
 
-  validateOptions(schema, options, {
-    name: 'URL Loader',
-    baseDataPath: 'options',
-  });
+  // validateOptions(schema, options, {
+  //   name: 'URL Loader',
+  //   baseDataPath: 'options',
+  // });
 
   // No limit or within the specified limit
-  if (shouldTransform(options.limit, content.length)) {
-    const { resourcePath } = this;
+  if (shouldTransform(options.limit, content.length, resourcePath)) {
     const mimetype = getMimetype(options.mimetype, resourcePath);
     const encoding = getEncoding(options.encoding);
 
